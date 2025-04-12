@@ -41,10 +41,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: Omit<SelectUser, "password">) => {
       queryClient.setQueryData(["/api/user"], user);
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       toast({
         title: "Login successful",
         description: `Welcome back, ${user.fullName}!`,
       });
+      window.location.href = "/"; // Force redirect to home page
     },
     onError: (error: Error) => {
       toast({
@@ -62,10 +64,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: Omit<SelectUser, "password">) => {
       queryClient.setQueryData(["/api/user"], user);
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       toast({
         title: "Registration successful",
         description: `Welcome to PreMedPal, ${user.fullName}!`,
       });
+      window.location.href = "/"; // Force redirect to home page
     },
     onError: (error: Error) => {
       toast({

@@ -19,9 +19,9 @@ interface NavItemProps {
 function NavItem({ href, icon, label, active, onClick }: NavItemProps) {
   return (
     <Link href={href}>
-      <a
+      <div
         className={cn(
-          "flex items-center space-x-2 rounded-lg px-3 py-2 transition-colors",
+          "flex items-center space-x-2 rounded-lg px-3 py-2 transition-colors cursor-pointer",
           active 
             ? "bg-neutral-100 text-neutral-900" 
             : "text-neutral-600 hover:bg-neutral-100"
@@ -30,7 +30,7 @@ function NavItem({ href, icon, label, active, onClick }: NavItemProps) {
       >
         {icon}
         <span>{label}</span>
-      </a>
+      </div>
     </Link>
   );
 }
@@ -137,13 +137,13 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
         <div className="fixed bottom-0 left-0 right-0 h-16 border-t border-neutral-200 bg-white flex items-center justify-around">
           {navItems.slice(0, 4).map((item) => (
             <Link key={item.href} href={item.href}>
-              <a className={cn(
-                "flex flex-col items-center justify-center text-xs",
+              <div className={cn(
+                "flex flex-col items-center justify-center text-xs cursor-pointer",
                 location === item.href ? "text-primary-600" : "text-neutral-600"
               )}>
                 <div className="text-xl mb-1">{item.icon}</div>
                 <span>{item.label.split(' ')[0]}</span>
-              </a>
+              </div>
             </Link>
           ))}
         </div>

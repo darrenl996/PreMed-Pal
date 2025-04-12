@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import React from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { insertUserSchema } from "@shared/schema";
@@ -36,10 +37,11 @@ export default function AuthPage() {
   const [, navigate] = useLocation();
 
   // Redirect if already logged in
-  if (user) {
-    navigate("/");
-    return null;
-  }
+  React.useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
 
   // Login form
   const loginForm = useForm<LoginFormData>({
@@ -73,11 +75,23 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-neutral-50">
+    <div className="flex flex-col min-h-screen bg-neutral-50 lg:flex-row">
+      {/* Mobile Hero Section - only visible on small screens */}
+      <div className="lg:hidden bg-gradient-to-r from-primary-600 to-primary-800 text-white p-6">
+        <div className="flex items-center mb-4">
+          <PillBottle className="h-8 w-8 text-white mr-2" />
+          <h1 className="text-3xl font-bold text-white">PreMedPal</h1>
+        </div>
+        <h2 className="text-xl font-bold mb-2">Enhance Your Medical Education Journey</h2>
+        <p className="text-sm text-white/90 mb-2">
+          PreMedPal helps pre-med students organize course materials and generate personalized study plans.
+        </p>
+      </div>
+      
       {/* Auth form section */}
-      <div className="flex items-center justify-center w-full lg:w-1/2 p-10">
+      <div className="flex items-center justify-center w-full lg:w-1/2 p-6 lg:p-10">
         <div className="w-full max-w-md">
-          <div className="flex items-center mb-8">
+          <div className="hidden lg:flex items-center mb-8">
             <PillBottle className="h-8 w-8 text-primary-600 mr-2" />
             <h1 className="text-3xl font-bold text-primary-600">PreMedPal</h1>
           </div>
