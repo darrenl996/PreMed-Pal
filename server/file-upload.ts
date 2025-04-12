@@ -69,29 +69,87 @@ async function generateStudyPlan(filePath: string): Promise<string> {
     }
     
     // Prepare a summary of the content for the API request
-    const contentSummary = fileContent.substring(0, 2000); // First 2000 chars as a sample
+    // Take more content to get better analysis
+    const contentSummary = fileContent.substring(0, 5000); // First 5000 chars as a sample
     
     try {
-      // Call the aimlapi.com API
-      const aiResponse = await axios.post("https://aimlapi.com/analyze", {
-        content: contentSummary,
-        type: "study_plan",
-        format: "detailed"
-      });
+      // Call the Hugging Face API using the Mistral Large model
+      const huggingFaceResponse = await axios.post(
+        "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2",
+        {
+          inputs: `You're an expert study plan generator for pre-med students.
+          
+Here's a sample of the content from a PDF about chemistry:
+
+"""
+${contentSummary}
+"""
+
+Based on this content, create a detailed, personalized study plan formatted as a JSON object with:
+1. A descriptive title about the chemistry topic
+2. A brief description of what the content covers
+3. A structured plan with two weeks, each containing 2-3 topics
+4. Each topic should have:
+   - A name related to chemistry (like "Acid-Base Reactions" NOT "pdf17" or "typecatalogpages")
+   - A meaningful description (2-3 sentences)
+   - Estimated study hours
+   - Relevant study resources (specific to chemistry)
+   - YouTube video recommendations (2 per topic) with title, URL and description
+5. A quiz section with 6 questions about chemistry concepts from the content:
+   - Each question should have 4 answer options
+   - Mark the correct answer with the index (0-3)
+   
+IMPORTANT: Focus only on CHEMISTRY concepts from the content. DO NOT include metadata terms like pdf17, typecatalogpages, structtreeroot, or rlangen in any part of the study plan. These are PDF metadata, not chemistry terms.
+
+Return ONLY the JSON without any explanation or markdown.`,
+          parameters: {
+            max_new_tokens: 2048,
+            temperature: 0.7
+          }
+        },
+        {
+          headers: {
+            "Authorization": `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
       
-      // If API call succeeds, return the response
-      if (aiResponse.data) {
-        // Make sure the response matches our expected format
-        const studyPlan = {
-          title: aiResponse.data.title || "Personalized Study Plan",
-          description: aiResponse.data.description || "This study plan was generated based on your uploaded materials.",
-          weeks: aiResponse.data.weeks || []
-        };
+      // If API call succeeds, parse and return the response
+      if (huggingFaceResponse.data && huggingFaceResponse.data.generated_text) {
+        console.log("Hugging Face Response:", huggingFaceResponse.data.generated_text);
         
-        return JSON.stringify(studyPlan);
+        // Extract JSON from the response - it might be surrounded by markdown code blocks
+        let jsonText = huggingFaceResponse.data.generated_text;
+        
+        // Remove any markdown code blocks if present
+        if (jsonText.includes("```json")) {
+          jsonText = jsonText.split("```json")[1].split("```")[0].trim();
+        } else if (jsonText.includes("```")) {
+          jsonText = jsonText.split("```")[1].split("```")[0].trim();
+        }
+        
+        // Parse the JSON response
+        try {
+          const parsedPlan = JSON.parse(jsonText);
+          
+          // Make sure the response matches our expected format
+          const studyPlan = {
+            title: parsedPlan.title || "Personalized Chemistry Study Plan",
+            description: parsedPlan.description || "This study plan was generated based on your chemistry materials.",
+            weeks: parsedPlan.weeks || [],
+            quiz: parsedPlan.quiz || undefined
+          };
+          
+          return JSON.stringify(studyPlan);
+        } catch (jsonError) {
+          console.error("Error parsing Hugging Face response as JSON:", jsonError);
+          console.log("Raw response:", jsonText);
+          // If JSON parsing fails, we'll fall back to a content-based generated plan
+        }
       }
     } catch (apiError) {
-      console.error("Error calling aimlapi:", apiError);
+      console.error("Error calling Hugging Face API:", apiError);
       // If API fails, we'll fall back to a content-based generated plan
     }
     
