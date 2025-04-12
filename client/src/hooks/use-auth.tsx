@@ -8,13 +8,15 @@ import { insertUserSchema, User as SelectUser, InsertUser } from "@shared/schema
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+type UserWithoutPassword = Omit<SelectUser, "password">;
+
 type AuthContextType = {
-  user: SelectUser | null;
+  user: UserWithoutPassword | null;
   isLoading: boolean;
   error: Error | null;
-  loginMutation: UseMutationResult<Omit<SelectUser, "password">, Error, LoginData>;
+  loginMutation: UseMutationResult<UserWithoutPassword, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<Omit<SelectUser, "password">, Error, InsertUser>;
+  registerMutation: UseMutationResult<UserWithoutPassword, Error, InsertUser>;
 };
 
 type LoginData = {
@@ -29,7 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data: user,
     error,
     isLoading,
-  } = useQuery<Omit<SelectUser, "password"> | undefined, Error>({
+  } = useQuery<UserWithoutPassword | undefined, Error>({
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
@@ -39,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiRequest("POST", "/api/login", credentials);
       return await res.json();
     },
-    onSuccess: (user: Omit<SelectUser, "password">) => {
+    onSuccess: (user: UserWithoutPassword) => {
       queryClient.setQueryData(["/api/user"], user);
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       toast({

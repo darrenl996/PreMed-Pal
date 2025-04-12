@@ -41,8 +41,7 @@ export const materials = pgTable("materials", {
   return {
     courseIdFk: foreignKey({
       columns: [table.courseId],
-      foreignColumns: [courses.id],
-      onDelete: 'cascade'
+      foreignColumns: [courses.id]
     })
   };
 });
@@ -58,8 +57,7 @@ export const studyPlans = pgTable("study_plans", {
   return {
     courseIdFk: foreignKey({
       columns: [table.courseId],
-      foreignColumns: [courses.id],
-      onDelete: 'cascade'
+      foreignColumns: [courses.id]
     })
   };
 });
