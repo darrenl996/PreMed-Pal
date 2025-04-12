@@ -140,6 +140,85 @@ async function generateStudyPlan(filePath: string): Promise<string> {
       }
     });
     
+    // Generate YouTube video recommendations based on keywords
+    const generateYouTubeRecommendations = (topic: string, subtopics: string[] = []) => {
+      return [
+        {
+          title: `Introduction to ${capitalize(topic)}`,
+          url: `https://www.youtube.com/results?search_query=introduction+to+${topic}+tutorial`,
+          description: `A comprehensive introduction to ${topic} fundamentals`
+        },
+        {
+          title: subtopics.length > 0 
+            ? `${capitalize(subtopics[0])} explained` 
+            : `Advanced ${capitalize(topic)}`,
+          url: subtopics.length > 0 
+            ? `https://www.youtube.com/results?search_query=${subtopics[0]}+explained+${topic}` 
+            : `https://www.youtube.com/results?search_query=advanced+${topic}+tutorial`,
+          description: subtopics.length > 0 
+            ? `Detailed explanation of ${subtopics[0]} in ${topic}` 
+            : `Advanced concepts in ${topic}`
+        }
+      ];
+    };
+
+    // Generate quiz questions based on topic and keywords
+    const generateQuizQuestions = (topic: string, relatedTerms: string[] = []) => {
+      const questions = [];
+      
+      // Basic question about the topic
+      questions.push({
+        question: `Which of the following best describes the main purpose of ${topic}?`,
+        options: [
+          `To analyze and understand ${relatedTerms.length > 0 ? relatedTerms[0] : 'core concepts'}`,
+          `To apply ${topic} in practical scenarios`,
+          `To develop new theories related to ${topic}`,
+          `To compare ${topic} with other similar topics`
+        ],
+        correctAnswer: 0
+      });
+      
+      // Question using related terms if available
+      if (relatedTerms.length > 1) {
+        questions.push({
+          question: `How does ${relatedTerms[0]} relate to ${relatedTerms[1]} in the context of ${topic}?`,
+          options: [
+            `${relatedTerms[0]} is a subset of ${relatedTerms[1]}`,
+            `${relatedTerms[0]} and ${relatedTerms[1]} are completely unrelated`,
+            `${relatedTerms[0]} builds upon concepts from ${relatedTerms[1]}`,
+            `${relatedTerms[0]} contradicts ${relatedTerms[1]}`
+          ],
+          correctAnswer: 2
+        });
+      } else {
+        questions.push({
+          question: `Which of the following is NOT a key principle of ${topic}?`,
+          options: [
+            `Understanding theoretical foundations`,
+            `Applying practical techniques`,
+            `Ignoring related fields of study`,
+            `Analyzing real-world examples`
+          ],
+          correctAnswer: 2
+        });
+      }
+      
+      // Application question
+      questions.push({
+        question: `How would you apply ${topic} knowledge to solve a real-world problem?`,
+        options: [
+          `By focusing only on theoretical aspects`,
+          `By using established frameworks and methodologies`,
+          `By ignoring previous research on the topic`,
+          `By avoiding collaboration with experts in the field`
+        ],
+        correctAnswer: 1
+      });
+      
+      return questions;
+    };
+
+    // Generate the complete enhanced study plan
     return JSON.stringify({
       title: "Personalized Study Plan",
       description: "This study plan is tailored based on your uploaded course materials.",
@@ -150,7 +229,11 @@ async function generateStudyPlan(filePath: string): Promise<string> {
             name: topic.name,
             description: topic.description,
             estimatedHours: 3 + index,
-            resources: topic.resources
+            resources: topic.resources,
+            videoRecommendations: generateYouTubeRecommendations(
+              keywords[index] || topic.name.split(' ')[0].toLowerCase(), 
+              keywords.slice(2, 4)
+            )
           }))
         },
         {
@@ -159,10 +242,22 @@ async function generateStudyPlan(filePath: string): Promise<string> {
             name: topic.name,
             description: topic.description,
             estimatedHours: 4 + index,
-            resources: topic.resources
+            resources: topic.resources,
+            videoRecommendations: generateYouTubeRecommendations(
+              keywords[index + 2] || topic.name.split(' ')[0].toLowerCase(), 
+              keywords.slice(0, 2)
+            )
           }))
         }
-      ]
+      ],
+      quiz: {
+        title: "Knowledge Check Quiz",
+        description: "Test your understanding of the key concepts from your course materials.",
+        questions: [
+          ...generateQuizQuestions(keywords[0] || "course concepts", keywords.slice(1, 3)),
+          ...generateQuizQuestions(keywords.length > 3 ? keywords[3] : "subject matter", keywords.slice(0, 2))
+        ]
+      }
     });
   } catch (error) {
     console.error("Error generating study plan:", error);

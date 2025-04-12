@@ -33,8 +33,22 @@ interface StudyPlanContent {
       description: string;
       estimatedHours: number;
       resources: string[];
+      videoRecommendations?: Array<{
+        title: string;
+        url: string;
+        description: string;
+      }>;
     }>;
   }>;
+  quiz?: {
+    title: string;
+    description: string;
+    questions: Array<{
+      question: string;
+      options: string[];
+      correctAnswer: number;
+    }>;
+  };
 }
 
 export default function StudyPlanPage() {
@@ -319,6 +333,38 @@ export default function StudyPlanPage() {
                                 </div>
                               )}
                               
+                              {/* Video Recommendations */}
+                              {topic.videoRecommendations && topic.videoRecommendations.length > 0 && (
+                                <div className="pl-6 mt-3">
+                                  <p className="text-xs font-medium text-neutral-500 mb-1">Recommended Videos:</p>
+                                  <ul className="space-y-2 text-sm">
+                                    {topic.videoRecommendations.map((video, i) => (
+                                      <li key={i}>
+                                        <a 
+                                          href={video.url} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="block p-2 rounded border border-neutral-200 hover:bg-neutral-50 transition-colors"
+                                        >
+                                          <p className="font-medium flex items-center text-primary-600">
+                                            <svg 
+                                              xmlns="http://www.w3.org/2000/svg" 
+                                              className="h-4 w-4 mr-1.5 text-red-500" 
+                                              fill="currentColor" 
+                                              viewBox="0 0 24 24"
+                                            >
+                                              <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z" />
+                                            </svg>
+                                            {video.title}
+                                          </p>
+                                          <p className="text-neutral-600 text-xs mt-1">{video.description}</p>
+                                        </a>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              
                               {index < week.topics.length - 1 && (
                                 <Separator className="mt-4" />
                               )}
@@ -335,7 +381,7 @@ export default function StudyPlanPage() {
         </div>
         
         {/* Study Tips */}
-        <div className="print:break-before-page">
+        <div className="print:break-before-page mb-8">
           <h2 className="text-xl font-bold mb-4">Study Tips</h2>
           <Card>
             <CardContent className="p-6">
@@ -393,6 +439,64 @@ export default function StudyPlanPage() {
             </CardContent>
           </Card>
         </div>
+        
+        {/* Knowledge Check Quiz */}
+        {planContent.quiz && (
+          <div className="print:break-before-page">
+            <h2 className="text-xl font-bold mb-4">{planContent.quiz.title || "Knowledge Check Quiz"}</h2>
+            <Card>
+              <CardHeader>
+                <CardTitle>Test Your Understanding</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <p className="text-neutral-600 mb-6">
+                  {planContent.quiz.description || "Check your knowledge with these practice questions."}
+                </p>
+                
+                <div className="space-y-8">
+                  {planContent.quiz.questions.map((question, qIndex) => {
+                    // For tracking selected answer in a real app you would use state hooks
+                    // This is a simplified version for demo purposes
+                    return (
+                      <div key={qIndex} className="border rounded-lg p-4 bg-neutral-50">
+                        <p className="font-medium mb-3">Q{qIndex + 1}: {question.question}</p>
+                        <div className="space-y-2">
+                          {question.options.map((option, oIndex) => (
+                            <div 
+                              key={oIndex} 
+                              className={`p-3 rounded-md border ${
+                                // Just for demonstration, highlight the correct answer
+                                oIndex === question.correctAnswer 
+                                  ? 'border-green-500 bg-green-50' 
+                                  : 'border-neutral-200 hover:bg-neutral-100 cursor-pointer'
+                              }`}
+                            >
+                              <label className="flex items-start cursor-pointer">
+                                <input 
+                                  type="radio" 
+                                  name={`question-${qIndex}`} 
+                                  className="mt-1 mr-2" 
+                                  defaultChecked={oIndex === question.correctAnswer}
+                                />
+                                <span>{option}</span>
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                        {/* Show answer explanation only for correct answers to demonstrate */}
+                        {question.correctAnswer !== undefined && (
+                          <div className="mt-3 text-sm text-green-600 p-2 bg-green-50 rounded border border-green-100">
+                            <p className="font-medium">Correct Answer: {question.options[question.correctAnswer]}</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </Sidebar>
   );
