@@ -110,6 +110,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCourse(id: number): Promise<boolean> {
+    // Delete all materials associated with the course first
+    await db.delete(materials)
+      .where(eq(materials.courseId, id));
+    
+    // Delete all study plans associated with the course
+    await db.delete(studyPlans)
+      .where(eq(studyPlans.courseId, id));
+    
+    // Now delete the course
     const [deletedCourse] = await db.delete(courses)
       .where(eq(courses.id, id))
       .returning();

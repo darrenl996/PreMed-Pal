@@ -250,6 +250,9 @@ export function setupFileUploadRoutes(app: express.Express) {
       // Generate study plan from uploaded file
       const studyPlanContent = await generateStudyPlan(req.file.path);
       
+      // Log the content for debugging
+      console.log("Generated study plan content:", studyPlanContent);
+      
       // Create study plan record
       const studyPlan = await storage.createStudyPlan({
         courseId,

@@ -16,7 +16,8 @@ import {
   Download, 
   Trash, 
   Loader2, 
-  File 
+  File,
+  FileUp
 } from "lucide-react";
 import { 
   Dialog, 
