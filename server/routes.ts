@@ -119,8 +119,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "You don't have permission to delete this course" });
       }
       
-      await storage.deleteCourse(courseId);
-      res.json({ message: "Course deleted successfully" });
+      // The updated deleteCourse method handles cascading deletes in a transaction
+      const success = await storage.deleteCourse(courseId);
+      
+      if (success) {
+        res.json({ message: "Course deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete course" });
+      }
     } catch (error) {
       console.error("Error deleting course:", error);
       res.status(500).json({ message: "Failed to delete course" });

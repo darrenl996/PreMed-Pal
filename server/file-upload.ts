@@ -100,6 +100,46 @@ async function generateStudyPlan(filePath: string): Promise<string> {
     const keywords = extractKeywords(fileContent);
     const topics = generateTopicsFromKeywords(keywords);
     
+    // Extract potential chapter references or important terms from the content
+    const chapterMatches = fileContent.match(/chapter\s+(\d+)/gi) || [];
+    const chapters = chapterMatches.map(match => {
+      const num = match.replace(/chapter\s+/i, '');
+      return `Chapter ${num}`;
+    });
+    
+    // Extract potential page numbers
+    const pageMatches = fileContent.match(/page\s+(\d+)/gi) || [];
+    const pages = pageMatches.map(match => {
+      const num = match.replace(/page\s+/i, '');
+      return `Page ${num}`;
+    });
+    
+    // Build study references based on actual content
+    const studyReferences = [...new Set([
+      ...chapters, 
+      ...pages,
+      ...keywords.slice(0, 3).map(k => `Study ${capitalize(k)} concept`)
+    ])];
+    
+    // If we found no references, use generic but better ones
+    const defaultReferences = [
+      "Review course materials",
+      "Create concept map",
+      "Practice sample questions"
+    ];
+    
+    // Make sure each topic has personalized resources
+    topics.forEach(topic => {
+      // Replace generic resources with more personalized ones
+      if (studyReferences.length > 0) {
+        topic.resources = topic.resources.map((_, i) => 
+          studyReferences[i % studyReferences.length] || defaultReferences[i % defaultReferences.length]
+        );
+      } else {
+        topic.resources = defaultReferences;
+      }
+    });
+    
     return JSON.stringify({
       title: "Personalized Study Plan",
       description: "This study plan is tailored based on your uploaded course materials.",
