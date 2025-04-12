@@ -73,9 +73,11 @@ export function CreateCourseDialog({ open, onOpenChange }: CreateCourseDialogPro
         });
       }
       
-      // Invalidate courses query to refresh the list
-      queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/study-plans"] });
+      // Invalidate and refetch to immediately update the UI
+      await queryClient.invalidateQueries({ queryKey: ["/api/courses"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/courses"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/study-plans"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/study-plans"] });
       
       // Reset form and close dialog
       form.reset();
