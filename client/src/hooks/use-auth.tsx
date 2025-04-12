@@ -64,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiRequest("POST", "/api/register", userData);
       return await res.json();
     },
-    onSuccess: (user: Omit<SelectUser, "password">) => {
+    onSuccess: (user: UserWithoutPassword) => {
       queryClient.setQueryData(["/api/user"], user);
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       toast({
